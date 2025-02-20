@@ -1,0 +1,88 @@
+name: Update README Project List
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  update-listing:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Update project listing
+        run: |
+          cat > update_listing.py << 'EOL'
+          import os
+          from pathlib import Path
+
+          README_PATH = 'README.md'
+          START_TAG = '<!-- PROJECT-LIST:START -->'
+          END_TAG = '<!-- PROJECT-LIST:END -->'
+
+          def get_project_list():
+              # Get all directories (excluding hidden ones)
+              dirs = [d for d in os.listdir('.') if os.path.isdir(d) and not d.startswith('.')]
+              
+              # Create the listing content
+              lines = []
+              for dir_name in sorted(dirs):
+                  readme_path = Path(dir_name) / "README.md"
+                  if readme_path.exists():
+                      lines.append(f"- [{dir_name}]({dir_name}/README.md)")
+                  else:
+                      lines.append(f"- {dir_name} (No README available)")
+              return '\n'.join(lines)
+
+          def update_readme():
+              if not os.path.exists(README_PATH):
+                  print(f"Creating new {README_PATH}")
+                  content = f"{START_TAG}\n{get_project_list()}\n{END_TAG}"
+                  with open(README_PATH, 'w') as f:
+                      f.write(content)
+                  return
+
+              with open(README_PATH, 'r') as f:
+                  content = f.read()
+
+              if START_TAG not in content or END_TAG not in content:
+                  print(f"Adding tags to {README_PATH}")
+                  content += f"\n\n{START_TAG}\n{get_project_list()}\n{END_TAG}"
+              else:
+                  print(f"Updating existing project list in {README_PATH}")
+                  start_idx = content.find(START_TAG) + len(START_TAG)
+                  end_idx = content.find(END_TAG)
+                  content = (
+                      content[:start_idx] + 
+                      f"\n{get_project_list()}\n" +
+                      content[end_idx:]
+                  )
+
+              with open(README_PATH, 'w') as f:
+                  f.write(content)
+
+          update_readme()
+          EOL
+          
+          # Run the Python script
+          python update_listing.py
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update project listing"
+          git push
