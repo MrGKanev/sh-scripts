@@ -14,7 +14,7 @@ Welcome to my personal collection of shell scripts! This repository contains var
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/shell-scripts.git
+   git clone https://github.com/MrGKanev/sh-scripts.git
    ```
 
 2. Make scripts executable:
