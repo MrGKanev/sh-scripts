@@ -32,16 +32,27 @@ jobs:
           START_TAG = '<!-- PROJECT-LIST:START -->'
           END_TAG = '<!-- PROJECT-LIST:END -->'
 
+          def find_readme(dir_path):
+              # Check for README.md first, then readme.md
+              readme_variants = ['README.md', 'readme.md']
+              for variant in readme_variants:
+                  if (Path(dir_path) / variant).exists():
+                      return variant
+              return None
+
           def get_project_list():
-              # Get all directories (excluding hidden ones)
-              dirs = [d for d in os.listdir('.') if os.path.isdir(d) and not d.startswith('.')]
+              # Get all directories (excluding hidden ones and .github)
+              dirs = [
+                  d for d in os.listdir('.')
+                  if os.path.isdir(d) and not d.startswith('.') and d != 'node_modules'
+              ]
               
               # Create the listing content
               lines = []
               for dir_name in sorted(dirs):
-                  readme_path = Path(dir_name) / "README.md"
-                  if readme_path.exists():
-                      lines.append(f"- [{dir_name}]({dir_name}/README.md)")
+                  readme_name = find_readme(dir_name)
+                  if readme_name:
+                      lines.append(f"- [{dir_name}]({dir_name}/{readme_name})")
                   else:
                       lines.append(f"- {dir_name} (No README available)")
               return '\n'.join(lines)
@@ -73,7 +84,9 @@ jobs:
               with open(README_PATH, 'w') as f:
                   f.write(content)
 
-          update_readme()
+          if __name__ == "__main__":
+              update_readme()
+              print("Project listing updated successfully!")
           EOL
           
           # Run the Python script
