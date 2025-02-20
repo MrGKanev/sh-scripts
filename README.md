@@ -5,7 +5,8 @@ Welcome to my personal collection of shell scripts! This repository contains var
 ## 📂 Projects
 
 <!-- PROJECT-LIST:START -->
-- [podcast-downloader](podcast-downloader/README.md)
+- network-check (No README available)
+- podcast-downloader (No README available)
 <!-- PROJECT-LIST:END -->
 
 ## 🛠️ Getting Started
